@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>緊急対応マニュアル</title>
+<style>
+  :root{
+    --bg:#0f1b2d;
+    --panel:#16263d;
+    --panel-soft:#1d3149;
+    --ink:#f2f6fb;
+    --muted:#9fb3c8;
+    --line:#284463;
+    --accent:#ffd23f;     /* 注意の黄 */
+    --danger:#ff5a5f;     /* 危険の赤 */
+    --safe:#3ddc97;       /* 安全の緑 */
+    --call:#ff5a5f;
+    --radius:18px;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+    --font:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #1b3354 0%, transparent 60%),
+      var(--bg);
+    background-color:var(--bg);
+    color:var(--ink);
+    font-family:var(--font);
+    line-height:1.6;
+    min-height:100vh;
+    min-height:100dvh;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .wrap{max-width:680px;margin:0 auto;padding:18px 16px 60px;}
+
+  /* ---------- ヘッダー ---------- */
+  header.app{
+    display:flex;align-items:center;gap:12px;
+    padding:8px 4px 18px;
+  }
+  .logo{
+    width:42px;height:42px;flex:0 0 42px;border-radius:12px;
+    background:var(--danger);display:grid;place-items:center;box-shadow:var(--shadow);
+  }
+  .logo svg{width:24px;height:24px;}
+  .app h1{font-size:19px;margin:0;letter-spacing:.02em;}
+  .app p{margin:2px 0 0;font-size:12px;color:var(--muted);}
+
+  /* ---------- 緊急ダイヤル常設バー ---------- */
+  .hotline{
+    display:flex;gap:10px;margin-bottom:18px;
+  }
+  .hotline a{
+    flex:1;text-decoration:none;color:#fff;
+    background:var(--call);border-radius:14px;
+    padding:11px 8px;text-align:center;font-weight:700;
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+    box-shadow:var(--shadow);
+  }
+  .hotline a.fire{background:#ff7a45;}
+  .hotline a .num{font-size:22px;letter-spacing:.04em;line-height:1;}
+  .hotline a .lbl{font-size:11px;opacity:.95;font-weight:600;}
+
+  /* ---------- パンくず ---------- */
+  .crumbs{
+    display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+    font-size:12px;color:var(--muted);min-height:20px;margin-bottom:12px;
+  }
+  .crumbs button{
+    background:none;border:none;color:var(--accent);font:inherit;
+    padding:0;cursor:pointer;text-decoration:underline;
+  }
+  .crumbs .sep{opacity:.5;}
+
+  /* ---------- カードグリッド（タブ＆選択肢共通） ---------- */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  .card{
+    border:1px solid var(--line);
+    background:linear-gradient(180deg,var(--panel-soft),var(--panel));
+    border-radius:var(--radius);
+    padding:18px 14px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+    text-align:center;color:var(--ink);
+    transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+  }
+  .card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:var(--shadow);}
+  .card:active{transform:scale(.97);}
+  .card .pic{width:56px;height:56px;display:grid;place-items:center;}
+  .card .pic svg{width:52px;height:52px;}
+  .card .t{font-size:16px;font-weight:700;}
+  .card .s{font-size:12px;color:var(--muted);margin-top:-4px;}
+  .card.wide{grid-column:1/-1;flex-direction:row;justify-content:flex-start;gap:14px;padding:16px;}
+  .card.wide .pic{width:40px;height:40px;flex:0 0 40px;}
+  .card.wide .pic svg{width:38px;height:38px;}
+  .card.wide .txt{text-align:left;}
+
+  .section-title{font-size:15px;font-weight:700;margin:4px 2px 14px;color:var(--ink);}
+  .section-q{font-size:18px;font-weight:700;margin:4px 2px 16px;}
+  .lead{font-size:13px;color:var(--muted);margin:-6px 2px 16px;}
+
+  /* ---------- 手順表示 ---------- */
+  .result{
+    background:linear-gradient(180deg,var(--panel-soft),var(--panel));
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px 18px;box-shadow:var(--shadow);
+  }
+  .result .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--danger);color:#fff;font-weight:700;font-size:13px;
+    padding:6px 12px;border-radius:999px;margin-bottom:14px;
+  }
+  .result .badge.safe{background:var(--safe);color:#06301f;}
+  .result .badge.warn{background:var(--accent);color:#3a2c00;}
+  .result h2{margin:0 0 6px;font-size:21px;}
+  .result .sub{color:var(--muted);font-size:13px;margin:0 0 18px;}
+
+  .steps{list-style:none;margin:0;padding:0;counter-reset:step;}
+  .steps li{
+    position:relative;display:flex;gap:14px;align-items:flex-start;
+    padding:16px 0;border-top:1px dashed var(--line);
+  }
+  .steps li:first-child{border-top:none;}
+  .steps .icon{
+    flex:0 0 50px;width:50px;height:50px;border-radius:14px;
+    background:var(--panel);border:1px solid var(--line);
+    display:grid;place-items:center;
+  }
+  .steps .icon svg{width:34px;height:34px;}
+  .steps .body{flex:1;}
+  .steps .body .n{
+    font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.08em;
+  }
+  .steps .body .h{font-size:16px;font-weight:700;margin:1px 0 3px;}
+  .steps .body .d{font-size:14px;color:var(--muted);}
+  .steps li.crit .h{color:var(--danger);}
+  .steps li.do .h{color:var(--safe);}
+
+  .note{
+    margin-top:16px;background:rgba(255,210,63,.1);
+    border:1px solid rgba(255,210,63,.35);border-radius:14px;
+    padding:12px 14px;font-size:13px;color:#ffe89a;
+    display:flex;gap:10px;
+  }
+  .note svg{flex:0 0 20px;width:20px;height:20px;margin-top:1px;}
+  .note.danger{background:rgba(255,90,95,.12);border-color:rgba(255,90,95,.4);color:#ffc2c4;}
+
+  .call-cta{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    margin-top:18px;text-decoration:none;color:#fff;font-weight:700;font-size:18px;
+    background:var(--call);border-radius:14px;padding:15px;box-shadow:var(--shadow);
+  }
+  .call-cta svg{width:24px;height:24px;}
+
+  .restart{
+    display:block;width:100%;margin-top:22px;
+    background:none;border:1px solid var(--line);color:var(--muted);
+    font:inherit;font-size:14px;padding:13px;border-radius:14px;cursor:pointer;
+  }
+  .restart:hover{border-color:var(--accent);color:var(--ink);}
+
+  .back{
+    background:none;border:1px solid var(--line);color:var(--muted);
+    font:inherit;font-size:13px;padding:9px 14px;border-radius:999px;cursor:pointer;
+    margin-bottom:16px;display:inline-flex;align-items:center;gap:6px;
+  }
+  .back:hover{border-color:var(--accent);color:var(--ink);}
+
+  @media(max-width:380px){
+    .hotline a .num{font-size:19px;}
+    .card .t{font-size:15px;}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .card,.card:hover,.card:active{transition:none;transform:none;}
+  }
+
+  /* フェード */
+  #view>*{animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="app">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2 3 6v6c0 5 3.8 8.5 9 10 5.2-1.5 9-5 9-10V6z"/>
+        <path d="M12 8v5M12 16.5v.01"/>
+      </svg>
+    </div>
+    <div>
+      <h1>緊急対応マニュアル</h1>
+      <p>タップして進むと、いまやるべきことが出ます</p>
+    </div>
+  </header>
+
+  <div class="hotline">
+    <a href="tel:119"><span class="num">119</span><span class="lbl">救急・火災</span></a>
+    <a href="tel:110" class="fire"><span class="num">110</span><span class="lbl">事件・事故</span></a>
+  </div>
+
+  <div class="crumbs" id="crumbs" aria-live="polite"></div>
+
+  <div id="view"></div>
+
+</div>
+
+<script>
+/* =========================================================
+   ピクトグラム（インラインSVG）
+   ========================================================= */
+const S = (inner, opts={}) => {
+  const stroke = opts.stroke || 'currentColor';
+  const fill = opts.fill || 'none';
+  return `<svg viewBox="0 0 48 48" fill="${fill}" stroke="${stroke}" stroke-width="2.4"
+    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+};
+const ICON = {
+  quake: S('<path d="M6 30h6l3-10 5 22 4-30 4 24 3-6h6"/><path d="M4 38h40" stroke-dasharray="2 4"/>'),
+  fire: S('<path d="M24 6c2 6 8 8 8 16a8 8 0 0 1-16 0c0-4 2-6 4-9 1 3 4 3 4 6"/><path d="M24 42c8 0 14-4 14-10"/>',{}),
+  aid: S('<rect x="8" y="14" width="32" height="24" rx="4"/><path d="M24 20v12M18 26h12"/><path d="M18 14v-3a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v3"/>'),
+  storm: S('<path d="M14 18a7 7 0 1 1 4 13H10"/><path d="M30 14a6 6 0 1 1 4 11h-9"/><path d="M16 36l-3 6M24 36l-3 6M32 36l-3 6"/>'),
+  guard: S('<path d="M24 5l13 5v9c0 9-5.5 16-13 19C16.5 35 11 28 11 19v-9z"/><path d="M24 18v6M24 29v.02"/>'),
+  phone: S('<path d="M14 6h7l3 8-4 3a18 18 0 0 0 9 9l3-4 8 3v7a3 3 0 0 1-3 3C24 41 9 26 9 11a3 3 0 0 1 3-3" />',{fill:'currentColor',stroke:'none'}),
+  duck: S('<circle cx="20" cy="12" r="5"/><path d="M14 40v-8a6 6 0 0 1 6-6h0a6 6 0 0 1 6 6"/><path d="M26 30l10-6M40 16l-6 4 1 7"/>',{}),
+  door: S('<rect x="14" y="8" width="20" height="34" rx="2"/><path d="M28 25v.02"/><path d="M8 42h32"/>'),
+  off: S('<path d="M24 6v14"/><path d="M14 12a14 14 0 1 0 20 0"/>'),
+  shoes: S('<path d="M8 30h10l6 4h12a4 4 0 0 1 4 4v2H8z"/><path d="M8 30v-8l6-2 4 6"/>'),
+  water: S('<path d="M24 6c6 9 11 14 11 21a11 11 0 0 1-22 0c0-7 5-12 11-21z"/>',{}),
+  high: S('<path d="M6 40h36"/><path d="M12 40V20l8-8 8 8 8-6v26"/><path d="M20 40V28h8v12"/>'),
+  hand: S('<path d="M16 24V12a3 3 0 0 1 6 0v9M22 21V9a3 3 0 0 1 6 0v12M28 22v-7a3 3 0 0 1 6 0v15a10 10 0 0 1-10 10h-3a9 9 0 0 1-7-4l-5-7a3 3 0 0 1 5-4l3 3"/>'),
+  ear: S('<path d="M16 20a8 8 0 1 1 16 0c0 4-3 5-3 9a5 5 0 0 1-10 0"/><path d="M24 38v.02"/>',{}),
+  run: S('<circle cx="28" cy="10" r="4"/><path d="M28 16l-6 6 6 4 2 10M22 22l-8 2M30 26l6 4M22 32l-6 8"/>'),
+  light: S('<path d="M24 6a10 10 0 0 0-6 18c1 1 2 3 2 5h8c0-2 1-4 2-5a10 10 0 0 0-6-18z"/><path d="M20 35h8M21 40h6"/>'),
+  bag: S('<path d="M14 16h20l2 24H12z"/><path d="M19 16v-4a5 5 0 0 1 10 0v4"/>'),
+  cover: S('<path d="M10 34V20l14-10 14 10v14"/><path d="M16 34v-8h16v8"/><circle cx="24" cy="24" r="2"/>'),
+  window: S('<rect x="10" y="8" width="28" height="32" rx="2"/><path d="M24 8v32M10 24h28"/>'),
+  ac: S('<path d="M24 4v40M4 24h40M9 9l30 30M39 9 9 39"/>'),
+  lock: S('<rect x="12" y="20" width="24" height="18" rx="3"/><path d="M17 20v-4a7 7 0 0 1 14 0v4"/><path d="M24 27v4"/>'),
+  eye: S('<path d="M6 24s7-11 18-11 18 11 18 11-7 11-18 11S6 24 6 24z"/><circle cx="24" cy="24" r="4"/>'),
+  hush: S('<circle cx="24" cy="24" r="18"/><path d="M24 14v12M19 19l5-5 5 5"/>'),
+  car: S('<path d="M10 30l3-9a4 4 0 0 1 4-3h14a4 4 0 0 1 4 3l3 9M8 30h32v6H8z"/><circle cx="16" cy="36" r="3"/><circle cx="32" cy="36" r="3"/>'),
+  check: S('<circle cx="24" cy="24" r="18"/><path d="M16 24l6 6 12-12"/>'),
+  warn: S('<path d="M24 6 4 40h40z"/><path d="M24 20v9M24 34v.02"/>'),
+  gas: S('<rect x="14" y="10" width="20" height="28" rx="3"/><path d="M20 18h8M20 24h8"/><path d="M14 38h20"/>'),
+};
+
+/* =========================================================
+   データ：5カテゴリ × 分岐ツリー
+   node: { q, lead, options:[{label, sub, icon, next|result}] }
+   result: { badge, level, title, sub, steps:[{icon,head,desc,type}], note, call }
+   ========================================================= */
+const r = (o)=>({type:'result', ...o});
+
+const TREE = {
+  quake: {
+    title:'地震・津波', icon:'quake', color:'#ff9f45',
+    root:{
+      q:'いま、揺れていますか？', lead:'まず身の安全。状況を選んでください。',
+      options:[
+        {label:'揺れている最中', sub:'今まさに揺れている', icon:'quake', next:'during'},
+        {label:'揺れが収まった', sub:'まず火と出口の確認', icon:'check', next:'after'},
+        {label:'海・川の近くにいる', sub:'津波のおそれ', icon:'water', next:'tsunami'},
+      ]
+    },
+    nodes:{
+      during: r({
+        level:'crit', badge:'まず身を守る', title:'揺れている間の行動',
+        sub:'動き回らず、頭を守って揺れが収まるのを待ちます。',
+        steps:[
+          {icon:'duck', head:'低く・隠れて・動かない', desc:'机の下などに入り、机の脚をつかむ。なければ頭を守ってしゃがむ。', type:'do'},
+          {icon:'cover', head:'頭と首を守る', desc:'クッション・カバンで頭部を保護。落下物・転倒する家具から離れる。'},
+          {icon:'door', head:'あわてて外に出ない', desc:'落下物が一番危険。揺れの間は無理に避難しない。', type:'crit'},
+          {icon:'off', head:'火は揺れが収まってから', desc:'無理に火を消しに行かない。まず自分の安全を優先。'},
+        ],
+        note:{type:'',text:'エレベーター内なら全階のボタンを押し、止まった階で降りる。'}
+      }),
+      after: r({
+        level:'warn', badge:'揺れが収まったら', title:'収まった直後の確認',
+        sub:'二次災害を防ぎます。落ち着いて順番に。',
+        steps:[
+          {icon:'shoes', head:'足元を守る', desc:'割れたガラスでけがをしないよう、靴やスリッパを履く。', type:'do'},
+          {icon:'gas', head:'火元・ガスを確認', desc:'使用中なら火を消す。ガスの臭いがしたら元栓を閉め、窓を開ける。'},
+          {icon:'door', head:'出口を確保', desc:'ドアや窓を開けて、逃げ道を確保しておく。'},
+          {icon:'ear', head:'情報を集める', desc:'ラジオ・スマホで正しい情報を確認。余震に備える。'},
+          {icon:'bag', head:'避難の準備', desc:'危険を感じたら非常持ち出し袋を持ち、ブレーカーを落として避難。'},
+        ],
+        note:{type:'danger',text:'ガス臭がするときは火気・電気スイッチに触れない（火花で引火の危険）。'}
+      }),
+      tsunami: r({
+        level:'crit', badge:'ただちに高台へ', title:'津波からの避難',
+        sub:'警報を待たず、揺れたらすぐ逃げるのが基本です。',
+        steps:[
+          {icon:'high', head:'とにかく高く・遠くへ', desc:'海・川から離れ、できるだけ高い場所へ。津波避難ビルや高台を目指す。', type:'crit'},
+          {icon:'run', head:'すぐ・徒歩で逃げる', desc:'車は渋滞で動けなくなる。原則は徒歩で素早く。', type:'do'},
+          {icon:'warn', head:'戻らない', desc:'一度逃げたら、警報解除まで絶対に戻らない。第二波以降の方が大きいことも。', type:'crit'},
+          {icon:'ear', head:'情報より行動', desc:'「来ないだろう」と思わず、まず逃げてから情報を確認する。'},
+        ],
+        note:{type:'danger',text:'強い揺れ・長い揺れを感じたら、警報がなくても自主的に避難を。'}
+      }),
+    }
+  },
+
+  fire: {
+    title:'火災', icon:'fire', color:'#ff7a45',
+    root:{
+      q:'火の状況はどれですか？', lead:'消すか逃げるかの判断が最優先です。',
+      options:[
+        {label:'出火直後・小さい火', sub:'まだ自分の背より低い', icon:'fire', next:'small'},
+        {label:'火が大きい / 天井に届く', sub:'消火は無理', icon:'warn', next:'big'},
+        {label:'煙が充満してきた', sub:'視界・呼吸が苦しい', icon:'cover', next:'smoke'},
+      ]
+    },
+    nodes:{
+      small: r({
+        level:'warn', badge:'初期消火（30秒だけ）', title:'小さな火への対応',
+        sub:'消火は天井に火が届くまで。それ以上は迷わず逃げます。',
+        steps:[
+          {icon:'ear', head:'まず大声で知らせる', desc:'「火事だ！」と周囲に知らせ、119番通報を誰かに頼む。', type:'do'},
+          {icon:'fire', head:'消火器・水で消す', desc:'消火器は火元(炎でなく燃えている物)に。天ぷら油には水を絶対にかけない。'},
+          {icon:'door', head:'逃げ道を背にして消火', desc:'出口を背にして消す。火と出口の間に立たない。', type:'crit'},
+          {icon:'warn', head:'30秒で消えなければ撤退', desc:'天井に火が回ったら消火は不可能。ドアを閉めて避難に切り替える。', type:'crit'},
+        ],
+        note:{type:'danger',text:'油火災に水は厳禁。炎が爆発的に広がる。鍋なら蓋やぬれタオルで覆う。'},
+        call:true
+      }),
+      big: r({
+        level:'crit', badge:'すぐ逃げる', title:'大きな火・天井に届く火',
+        sub:'消火は考えず、命を守る行動だけに集中します。',
+        steps:[
+          {icon:'run', head:'ためらわず避難', desc:'荷物より命。すぐにその場を離れる。', type:'crit'},
+          {icon:'door', head:'通った扉は閉める', desc:'扉を閉めると火と煙の回りが遅くなる。ただし鍵はかけない。', type:'do'},
+          {icon:'phone', head:'安全な場所から119番', desc:'外に出てから通報。住所と「逃げ遅れの有無」を伝える。'},
+          {icon:'warn', head:'絶対に戻らない', desc:'忘れ物を取りに戻らない。中に人がいる場合も消防に伝える。', type:'crit'},
+        ],
+        call:true
+      }),
+      smoke: r({
+        level:'crit', badge:'煙から逃げる', title:'煙が充満したときの避難',
+        sub:'火より煙が危険。低い姿勢で口を覆って逃げます。',
+        steps:[
+          {icon:'cover', head:'姿勢を低く', desc:'有毒な煙は上にたまる。床近くの空気を吸いながら姿勢を低く保つ。', type:'do'},
+          {icon:'hush', head:'口と鼻を覆う', desc:'ハンカチやタオル(できれば濡らす)で口・鼻を覆い、煙を吸わない。'},
+          {icon:'door', head:'ドアは触って確認', desc:'ドアノブが熱ければ開けない。別の出口を探す。', type:'crit'},
+          {icon:'run', head:'壁づたいに出口へ', desc:'視界が悪いときは壁を伝って避難。煙の濃い方へは進まない。'},
+        ],
+        note:{type:'danger',text:'逃げられない時は窓際で外に助けを求め、ドアの隙間を布でふさぐ。'},
+        call:true
+      }),
+    }
+  },
+
+  aid: {
+    title:'急病・けが', icon:'aid', color:'#3ddc97',
+    root:{
+      q:'どんな状態ですか？', lead:'反応と呼吸の有無で対応が分かれます。',
+      options:[
+        {label:'反応がない / 倒れた', sub:'呼びかけに答えない', icon:'guard', next:'unconscious'},
+        {label:'のどに詰まらせた', sub:'息ができず苦しそう', icon:'hush', next:'choke'},
+        {label:'出血している', sub:'けが・切り傷', icon:'aid', next:'bleed'},
+        {label:'やけど', sub:'熱湯・火・油など', icon:'fire', next:'burn'},
+      ]
+    },
+    nodes:{
+      unconscious: r({
+        level:'crit', badge:'命に関わる', title:'反応がない人への対応',
+        sub:'救急車を呼びながら、呼吸を確認します。',
+        steps:[
+          {icon:'ear', head:'肩をたたき反応を見る', desc:'「大丈夫ですか」と声をかけ、肩を軽くたたく。反応がなければ次へ。', type:'do'},
+          {icon:'phone', head:'119番とAEDを依頼', desc:'周囲の人を指名し「あなたは119番」「あなたはAED」と具体的に頼む。', type:'crit'},
+          {icon:'aid', head:'呼吸を確認', desc:'胸とお腹の動きを10秒見る。普段どおりの呼吸がなければ胸骨圧迫を始める。'},
+          {icon:'hand', head:'胸骨圧迫', desc:'胸の真ん中を強く速く(1分100〜120回)。救急隊が来るまで続ける。', type:'crit'},
+        ],
+        note:{type:'',text:'119番では通信指令員が手順を教えてくれます。指示に従ってください。'},
+        call:true
+      }),
+      choke: r({
+        level:'crit', badge:'窒息', title:'のどに詰まらせたとき',
+        sub:'咳ができるか・できないかで対応が変わります。',
+        steps:[
+          {icon:'ear', head:'咳ができるか確認', desc:'咳ができるなら、出るまで咳を続けさせる。声が出ない・顔が青いなら次へ。', type:'do'},
+          {icon:'hand', head:'背中を強くたたく', desc:'前かがみにさせ、肩甲骨の間を手の付け根で数回強くたたく(背部叩打)。'},
+          {icon:'guard', head:'腹部を圧迫', desc:'後ろから抱え、みぞおちの下を上に向かって圧迫(腹部突き上げ)。妊婦・乳児は除く。'},
+          {icon:'phone', head:'取れなければ119番', desc:'取れず意識がなくなったら、すぐ通報し胸骨圧迫へ。', type:'crit'},
+        ],
+        note:{type:'danger',text:'乳児(1歳未満)は腹部突き上げ禁止。背中たたきと胸部圧迫で対応。'},
+        call:true
+      }),
+      bleed: r({
+        level:'warn', badge:'止血', title:'出血しているとき',
+        sub:'押さえて止めるのが基本です。',
+        steps:[
+          {icon:'hand', head:'傷口を直接押さえる', desc:'清潔な布やガーゼを当て、手のひらで強く圧迫し続ける(直接圧迫止血)。', type:'do'},
+          {icon:'high', head:'傷を心臓より高く', desc:'可能なら出血部位を心臓より高い位置に上げると出血が減る。'},
+          {icon:'aid', head:'布は外さない', desc:'血がにじんでも外さず、上から重ねて押さえ続ける。'},
+          {icon:'phone', head:'止まらない/大量なら119番', desc:'勢いよく出血・押さえても止まらないときは救急要請。', type:'crit'},
+        ],
+        note:{type:'',text:'感染防止のため、できればビニール手袋などで相手の血液に直接触れない。'}
+      }),
+      burn: r({
+        level:'warn', badge:'やけど', title:'やけどの応急手当',
+        sub:'とにかく冷やすのが最優先です。',
+        steps:[
+          {icon:'water', head:'すぐ流水で冷やす', desc:'水道水で20〜30分冷やす。痛みがやわらぐまで。衣服の上からでもよい。', type:'do'},
+          {icon:'shoes', head:'衣類は無理にはがさない', desc:'貼りついた服は無理にはがさず、服の上から冷やす。'},
+          {icon:'warn', head:'水ぶくれは潰さない', desc:'つぶすと感染の原因に。清潔に保つ。', type:'crit'},
+          {icon:'phone', head:'広範囲・顔・重症は受診', desc:'広い範囲、顔・手足、子どもの重いやけどはすぐ医療機関へ。'},
+        ],
+        note:{type:'danger',text:'氷や保冷剤を直接当てない(凍傷の危険)。流水で冷やす。'}
+      }),
+    }
+  },
+
+  storm: {
+    title:'台風・水害', icon:'storm', color:'#4aa3ff',
+    root:{
+      q:'いまの段階はどれですか？', lead:'早めの備えと、危険な状況での判断です。',
+      options:[
+        {label:'接近前・備える', sub:'まだ天気は荒れていない', icon:'bag', next:'before'},
+        {label:'浸水しそう / 始まった', sub:'水が迫ってきている', icon:'water', next:'flood'},
+        {label:'避難するか迷う', sub:'外も危険そう', icon:'door', next:'evac'},
+      ]
+    },
+    nodes:{
+      before: r({
+        level:'warn', badge:'接近前の備え', title:'台風が来る前にやること',
+        sub:'明るいうち・風が強くなる前に済ませます。',
+        steps:[
+          {icon:'window', head:'窓・雨戸を固定', desc:'雨戸やシャッターを閉める。なければ飛散防止に窓へ養生テープを。', type:'do'},
+          {icon:'bag', head:'飛ぶ物を片づける', desc:'植木鉢・物干し竿・ゴミ箱など、風で飛ぶ物を屋内へ。'},
+          {icon:'water', head:'水と電気の備え', desc:'飲料水・モバイルバッテリーを確保。浴槽に水を貯めておく。'},
+          {icon:'ear', head:'避難情報を確認', desc:'ハザードマップで自宅の危険度を確認し、早めの避難先を決める。'},
+        ],
+        note:{type:'',text:'高齢者・小さな子どもがいる家庭は「警戒レベル3」で避難開始を。'}
+      }),
+      flood: r({
+        level:'crit', badge:'浸水の危険', title:'水が迫ってきたとき',
+        sub:'無理な移動はせず、安全な高さを確保します。',
+        steps:[
+          {icon:'high', head:'高い階・高い場所へ', desc:'外が危険なら無理に出ず、建物の2階以上など高い場所へ(垂直避難)。', type:'do'},
+          {icon:'water', head:'水の中を歩かない', desc:'ひざ下でも流れがあれば危険。マンホールや側溝が見えず転落の恐れ。', type:'crit'},
+          {icon:'ac', head:'電気・ガスを止める', desc:'浸水のおそれがあればブレーカーを落とし、感電を防ぐ。'},
+          {icon:'phone', head:'孤立しそうなら通報', desc:'逃げ遅れ・救助が必要なときは119番か自治体へ連絡し、居場所を伝える。', type:'crit'},
+        ],
+        note:{type:'danger',text:'車での移動は冠水路で立ち往生・水没の危険。原則控える。'}
+      }),
+      evac: r({
+        level:'warn', badge:'避難の判断', title:'避難するか迷ったら',
+        sub:'「迷ったら早めに動く」が原則です。',
+        steps:[
+          {icon:'door', head:'明るいうちに動く', desc:'夜・暴風雨の中の移動は危険。早め・明るいうちの避難を。', type:'do'},
+          {icon:'shoes', head:'歩きやすい服装で', desc:'長靴より運動靴。両手を空け、リュックで。棒で足元を確認しながら。'},
+          {icon:'high', head:'外が危険なら家の中で', desc:'すでに浸水・暴風なら無理に出ず、2階や山と反対側の部屋へ。', type:'crit'},
+          {icon:'ear', head:'一人で判断しない', desc:'近所と声をかけ合い、要援護者がいれば一緒に避難する。'},
+        ],
+        note:{type:'',text:'警戒レベル4「避難指示」で全員避難。レベル5は手遅れの段階です。'}
+      }),
+    }
+  },
+
+  guard: {
+    title:'不審者・防犯', icon:'guard', color:'#b78cff',
+    root:{
+      q:'どんな状況ですか？', lead:'距離を取り、人のいる方へ逃げるのが基本です。',
+      options:[
+        {label:'家に侵入された / 物音', sub:'在宅中に誰かいる', icon:'lock', next:'intruder'},
+        {label:'外でつけられている', sub:'尾行・待ち伏せの不安', icon:'eye', next:'follow'},
+        {label:'声をかけられ怖い', sub:'子ども・女性など', icon:'hush', next:'approach'},
+        {label:'不審な電話・訪問', sub:'詐欺かもしれない', icon:'phone', next:'fraud'},
+      ]
+    },
+    nodes:{
+      intruder: r({
+        level:'crit', badge:'侵入の疑い', title:'家に誰かいるかもしれない',
+        sub:'対決せず、自分の安全と通報を最優先にします。',
+        steps:[
+          {icon:'run', head:'鉢合わせを避ける', desc:'相手と対決しない。可能なら静かに家の外、または別室へ移動する。', type:'crit'},
+          {icon:'lock', head:'部屋に立てこもる', desc:'出られなければ部屋に入り鍵をかけ、家具でドアをふさぐ。', type:'do'},
+          {icon:'phone', head:'110番通報', desc:'小声でよいので住所と状況を伝える。話せないなら繋いだままにする。'},
+          {icon:'ear', head:'音で居場所を知らせない', desc:'スマホは音・バイブを切る。明かりや物音で気づかれないように。'},
+        ],
+        note:{type:'danger',text:'金品は惜しまない。物より命。相手を刺激しないことを最優先に。'},
+        call110:true
+      }),
+      follow: r({
+        level:'warn', badge:'尾行の不安', title:'つけられていると感じたら',
+        sub:'確かめるより、人のいる場所へ向かいます。',
+        steps:[
+          {icon:'eye', head:'人通りの多い方へ', desc:'暗い道・近道を避け、コンビニや店など明るく人のいる場所へ向かう。', type:'do'},
+          {icon:'door', head:'店や交番に入る', desc:'不安ならためらわず店員に「つけられている」と伝える。交番に駆け込む。', type:'crit'},
+          {icon:'phone', head:'家族に居場所を共有', desc:'歩きスマホは避けつつ、現在地を家族に知らせる。通話しながら歩くのも有効。'},
+          {icon:'run', head:'家に直接帰らない', desc:'自宅を知られないよう、まず安全な場所に入り、相手をやり過ごす。'},
+        ],
+        note:{type:'',text:'危険を感じたら迷わず110番。「気のせいかも」でも通報して構いません。'},
+        call110:true
+      }),
+      approach: r({
+        level:'warn', badge:'声かけ', title:'知らない人に声をかけられた',
+        sub:'近づかず、はっきり断って離れます。',
+        steps:[
+          {icon:'hand', head:'距離を取る', desc:'車や人に近づかない。腕一本分以上の距離を保つ。', type:'do'},
+          {icon:'hush', head:'はっきり断る', desc:'「いりません」「行きません」と短くはっきり。会話を続けない。'},
+          {icon:'run', head:'逆方向へ逃げる', desc:'車で来ているなら、車が進みにくい逆方向へ走って逃げる。', type:'crit'},
+          {icon:'ear', head:'大声・防犯ブザー', desc:'「助けて」と大声を出す、防犯ブザーを鳴らして周囲に知らせる。'},
+        ],
+        note:{type:'',text:'子どもには「いかのおすし」(いかない・のらない・おおごえ・すぐにげる・しらせる)を。'},
+        call110:true
+      }),
+      fraud: r({
+        level:'warn', badge:'詐欺の疑い', title:'不審な電話・訪問',
+        sub:'その場で決めない・お金の話は疑うのが鉄則です。',
+        steps:[
+          {icon:'phone', head:'一度切る・その場で決めない', desc:'「今すぐ」「あなただけ」は危険信号。一度電話を切り、自分から正規の番号にかけ直す。', type:'do'},
+          {icon:'lock', head:'お金・カードは渡さない', desc:'警察・銀行・役所がATM操作やカード受け取りを求めることはない。', type:'crit'},
+          {icon:'ear', head:'家族・周囲に相談', desc:'一人で判断せず、必ず家族や周りの人に話す。'},
+          {icon:'phone', head:'警察相談 #9110', desc:'詐欺かもと思ったら、緊急でなければ警察相談専用電話#9110へ。'},
+        ],
+        note:{type:'',text:'訪問販売はドアを開けず対応。不安ならインターホン越しに断る。'}
+      }),
+    }
+  },
+};
+
+/* =========================================================
+   状態管理 & 描画
+   ========================================================= */
+const view = document.getElementById('view');
+const crumbsEl = document.getElementById('crumbs');
+let path = []; // {cat, nodeKey, label}
+
+function renderHome(){
+  path = [];
+  renderCrumbs();
+  const cats = Object.entries(TREE).map(([k,c])=>`
+    <button class="card" onclick="pickCat('${k}')">
+      <span class="pic" style="color:${c.color}">${ICON[c.icon]}</span>
+      <span class="t">${c.title}</span>
+    </button>`).join('');
+  view.innerHTML = `
+    <div class="section-title">対応したい事故・災害を選んでください</div>
+    <div class="grid">${cats}
+      <div class="card wide" onclick="pickCat('aid')" style="cursor:pointer">
+        <span class="pic" style="color:var(--danger)">${ICON.phone}</span>
+        <span class="txt"><span class="t" style="font-size:15px">迷ったら：意識がない・大出血・大きな火</span>
+        <span class="s">→ ためらわず 119番</span></span>
+      </div>
+    </div>`;
+}
+
+function pickCat(catKey){
+  const cat = TREE[catKey];
+  path = [{label:cat.title, catKey}];
+  renderNode(catKey, 'root');
+}
+
+function renderNode(catKey, nodeKey){
+  const cat = TREE[catKey];
+  const node = nodeKey==='root' ? cat.root : cat.nodes[nodeKey];
+  if(node.type==='result'){ return renderResult(catKey, node); }
+  renderCrumbs();
+  const opts = node.options.map((o,i)=>`
+    <button class="card wide" onclick="choose('${catKey}','${o.next}','${escapeAttr(o.label)}')">
+      <span class="pic" style="color:${cat.color}">${ICON[o.icon]||''}</span>
+      <span class="txt">
+        <span class="t">${o.label}</span>
+        ${o.sub?`<span class="s">${o.sub}</span>`:''}
+      </span>
+    </button>`).join('');
+  view.innerHTML = `
+    <button class="back" onclick="goBack()">‹ もどる</button>
+    <div class="section-q">${node.q}</div>
+    ${node.lead?`<div class="lead">${node.lead}</div>`:''}
+    <div class="grid"><div style="grid-column:1/-1;display:flex;flex-direction:column;gap:12px">${opts}</div></div>`;
+}
+
+function choose(catKey, next, label){
+  path.push({label, catKey, nodeKey:next});
+  renderNode(catKey, next);
+}
+
+function renderResult(catKey, res){
+  renderCrumbs();
+  const badgeClass = res.level==='crit'?'':res.level==='safe'?'safe':'warn';
+  const steps = res.steps.map((s,i)=>`
+    <li class="${s.type||''}">
+      <span class="icon" style="color:${TREE[catKey].color}">${ICON[s.icon]||ICON.check}</span>
+      <span class="body">
+        <span class="n">STEP ${i+1}</span>
+        <span class="h">${s.head}</span>
+        <span class="d">${s.desc}</span>
+      </span>
+    </li>`).join('');
+  let cta = '';
+  if(res.call) cta = `<a class="call-cta" href="tel:119">${ICON.phone}<span>119番に電話する</span></a>`;
+  else if(res.call110) cta = `<a class="call-cta" href="tel:110">${ICON.phone}<span>110番に電話する</span></a>`;
+  const note = res.note ? `
+    <div class="note ${res.note.type==='danger'?'danger':''}">
+      ${ICON.warn}<span>${res.note.text}</span>
+    </div>` : '';
+  view.innerHTML = `
+    <button class="back" onclick="goBack()">‹ もどる</button>
+    <div class="result">
+      <span class="badge ${badgeClass}">${ICON.warn}${res.badge}</span>
+      <h2>${res.title}</h2>
+      <p class="sub">${res.sub}</p>
+      <ul class="steps">${steps}</ul>
+      ${note}
+      ${cta}
+    </div>
+    <button class="restart" onclick="renderHome()">↺ 最初の画面にもどる</button>`;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goBack(){
+  if(path.length<=1){ renderHome(); return; }
+  path.pop();
+  const last = path[path.length-1];
+  if(path.length===1){ renderNode(last.catKey,'root'); }
+  else { renderNode(last.catKey, last.nodeKey); }
+}
+
+function renderCrumbs(){
+  if(path.length===0){ crumbsEl.innerHTML=''; return; }
+  const parts = ['<button onclick="renderHome()">ホーム</button>'];
+  path.forEach((p,i)=>{
+    parts.push('<span class="sep">›</span>');
+    if(i===path.length-1){ parts.push(`<span>${p.label}</span>`); }
+    else {
+      const idx=i;
+      parts.push(`<button onclick="jumpTo(${idx})">${p.label}</button>`);
+    }
+  });
+  crumbsEl.innerHTML = parts.join(' ');
+}
+
+function jumpTo(idx){
+  path = path.slice(0, idx+1);
+  const last = path[path.length-1];
+  if(path.length===1) renderNode(last.catKey,'root');
+  else renderNode(last.catKey, last.nodeKey);
+}
+
+function escapeAttr(s){return String(s).replace(/'/g,"\\'");}
+
+renderHome();
+</script>
+</body>
+</html>
