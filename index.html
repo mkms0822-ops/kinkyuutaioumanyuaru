@@ -149,10 +149,22 @@
 
   .call-cta{
     display:flex;align-items:center;justify-content:center;gap:10px;
-    margin-top:18px;text-decoration:none;color:#fff;font-weight:700;font-size:18px;
+    margin-top:12px;text-decoration:none;color:#fff;font-weight:700;font-size:18px;
     background:var(--call);border-radius:14px;padding:15px;box-shadow:var(--shadow);
   }
-  .call-cta svg{width:24px;height:24px;}
+  .call-cta svg{width:24px;height:24px;flex:0 0 auto;}
+  .call-cta span{display:flex;flex-direction:column;align-items:flex-start;line-height:1.25;}
+  .call-cta small{font-size:11px;font-weight:600;opacity:.92;}
+  /* 相談窓口など、緊急度がやや低いボタン（青系） */
+  .call-cta.soft{background:#2b6cb0;}
+  /* 関連ページへのリンクボタン */
+  .link-cta{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    margin-top:12px;border:1px solid var(--line);cursor:pointer;font:inherit;width:100%;
+    color:var(--ink);font-weight:700;font-size:15px;
+    background:var(--panel-soft);border-radius:14px;padding:13px;
+  }
+  .link-cta svg{width:20px;height:20px;color:var(--accent);}
 
   .restart{
     display:block;width:100%;margin-top:22px;
@@ -286,6 +298,46 @@
     font:inherit;font-size:14px;padding:12px;border-radius:14px;cursor:pointer;
   }
   .aed-close:hover{border-color:var(--accent);color:var(--ink);}
+
+  /* #7119 対応地域オーバーレイ */
+  .area-panel{max-width:480px;}
+  .area-panel h2{font-size:18px;margin-bottom:14px;}
+  .area-note{
+    display:flex;gap:9px;align-items:flex-start;
+    border-radius:12px;padding:12px 13px;margin-bottom:16px;font-size:12.5px;line-height:1.65;
+  }
+  .area-note svg{width:20px;height:20px;flex:0 0 auto;}
+  .area-note.warn{background:rgba(255,90,95,.10);border:1px solid rgba(255,90,95,.4);color:var(--ink);}
+  .area-note.warn svg{color:var(--danger);}
+  .area-note b{color:var(--ink);}
+  .area-h{
+    font-size:13px;font-weight:700;color:var(--ink);
+    margin:16px 0 8px;padding-left:9px;border-left:3px solid var(--accent);
+  }
+  .area-list{display:flex;flex-direction:column;gap:7px;}
+  .area-row{
+    background:var(--panel-soft);border:1px solid var(--line);border-radius:10px;
+    padding:9px 11px;
+  }
+  .area-pref{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px;}
+  .area-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;}
+  .area-tag{
+    font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 8px;line-height:1.5;
+  }
+  .area-tag.all{background:rgba(61,220,151,.16);color:#3ddc97;}
+  .area-tag.a15{background:rgba(77,168,255,.16);color:#4da8ff;}
+  .area-when{font-size:11.5px;color:var(--muted);}
+  .area-scope{font-size:11px;color:var(--muted);flex-basis:100%;}
+  .area-sub{font-size:11.5px;line-height:1.6;color:var(--muted);margin-top:6px;}
+  .area-foot{font-size:11px;line-height:1.6;color:var(--muted);margin:16px 0 14px;padding-top:12px;border-top:1px solid var(--line);}
+  /* 結果画面：地域確認ボタン（青系の枠） */
+  .area-cta{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    margin-top:12px;border:1px solid #4da8ff;cursor:pointer;font:inherit;width:100%;
+    color:#4da8ff;font-weight:700;font-size:15px;
+    background:rgba(77,168,255,.08);border-radius:14px;padding:13px;
+  }
+  .area-cta svg{width:20px;height:20px;color:#4da8ff;}
 </style>
 </head>
 <body>
@@ -344,6 +396,15 @@
     <p class="aed-note">⚠ 設置情報は各サイトの登録に基づくもので、最新の状況と異なる場合があります。緊急時はためらわず119番に通報し、周囲の人にもAEDの手配を頼んでください。</p>
 
     <button type="button" class="aed-close" onclick="closeAedModal()">✕ 閉じる</button>
+  </div>
+</div>
+
+<!-- ===== #7119 対応地域・受付時間 オーバーレイ ===== -->
+<div class="aed-overlay" id="areaOverlay" onclick="if(event.target===this)closeAreaModal()">
+  <div class="aed-panel area-panel" role="dialog" aria-modal="true" aria-label="#7119 対応地域・受付時間">
+    <h2 id="areaTitle">#7119 対応地域・受付時間</h2>
+    <div id="areaBody"></div>
+    <button type="button" class="aed-close" onclick="closeAreaModal()">✕ 閉じる</button>
   </div>
 </div>
 
@@ -506,6 +567,7 @@ const TREE = {
         {label:'のどに詰まらせた', sub:'息ができず苦しそう', icon:'hush', next:'choke'},
         {label:'出血している', sub:'けが・切り傷', icon:'aid', next:'bleed'},
         {label:'やけど', sub:'熱湯・火・油など', icon:'fire', next:'burn'},
+        {label:'救急車を呼ぶか迷う', sub:'相談先を案内します', icon:'phone', next:'consult'},
       ]
     },
     nodes:{
@@ -520,6 +582,7 @@ const TREE = {
         ],
         note:{type:'',text:'119番では通信指令員が手順を教えてくれます。指示に従ってください。'},
         call:true, aed:true, cpr:true,
+        links:[{to:'aed_caution', label:'AED使用時の注意を見る', icon:'heart'}],
         // 音声読み上げ用の読み仮名テキスト（数字・英語の誤読を防ぐ）
         speak:[
           'すてっぷ１。',
@@ -569,6 +632,64 @@ const TREE = {
           {icon:'phone', head:'広範囲・顔・重症は受診', desc:'広い範囲、顔・手足、子どもの重いやけどはすぐ医療機関へ。'},
         ],
         note:{type:'danger',text:'氷や保冷剤を直接当てない(凍傷の危険)。流水で冷やす。'}
+      }),
+      // ===== 救急車を呼ぶか迷うとき：相談窓口の案内フロー =====
+      consult:{
+        q:'今の状態に当てはまるものは？',
+        lead:'危険なサインがあれば、相談より先に119番です。',
+        options:[
+          {label:'意識がない・呼吸が苦しい・大量出血', sub:'唇が紫/激しい胸痛/ろれつが回らない等', icon:'warn', next:'consult_119'},
+          {label:'大人（おおむね15歳以上）の急病・けが', sub:'呼ぶか迷う／受診すべきか相談したい', icon:'guard', next:'consult_7119'},
+          {label:'子ども（おおむね15歳未満）の急病', sub:'夜間・休日に具合が悪い', icon:'duck', next:'consult_8000'},
+        ]
+      },
+      consult_119: r({
+        level:'crit', badge:'ためらわず119番', title:'すぐに救急車を',
+        sub:'これらは緊急性が高いサインです。相談より先に通報を。',
+        steps:[
+          {icon:'warn', head:'当てはまれば即119番', desc:'意識がない・呼吸が苦しい・唇が紫(チアノーゼ)・大量出血・激しい胸痛・顔のゆがみ・片側の麻痺・ろれつが回らない。', type:'crit'},
+          {icon:'phone', head:'場所と状態を伝える', desc:'住所や目印、いつから・どんな様子かを落ち着いて伝える。通信指令員の指示に従う。', type:'do'},
+        ],
+        note:{type:'danger',text:'迷ったら呼んでよい。「呼ばなくてよかった」と後で分かっても問題ありません。'},
+        call:true
+      }),
+      consult_7119: r({
+        level:'warn', badge:'大人の相談 #7119', title:'救急安心センター #7119',
+        sub:'救急車を呼ぶか、今すぐ受診すべきか、看護師等が電話で相談に応じます。',
+        steps:[
+          {icon:'phone', head:'#7119にかける', desc:'医師・看護師・相談員が症状を聞き、「119番」「受診」「様子見」の目安を案内。緊急なら救急車手配につなぐことも。', type:'do'},
+          {icon:'warn', head:'急変したら119番', desc:'相談中でも、意識・呼吸の異常や大量出血など危険なサインが出たら、ためらわず119番へ。', type:'crit'},
+        ],
+        note:{type:'',text:'#7119は全国共通ではなく、対応していない地域があります。対応地域でも受付時間が決まっている場合があります。つながらないとき・緊急のときは、ためらわず119番に電話してください。'},
+        areaInfo:true,
+        tels:[
+          {num:'#7119', label:'#7119 に電話する', sub:'大人の救急相談（対応地域のみ）', kind:'soft'}
+        ]
+      }),
+      consult_8000: r({
+        level:'warn', badge:'こども #8000', title:'子ども医療電話相談 #8000',
+        sub:'夜間・休日に子どもの具合が悪いとき、小児科医・看護師に電話で相談できます。',
+        steps:[
+          {icon:'phone', head:'#8000にかける', desc:'おおむね15歳未満の子どもが対象。家庭での対処法や、受診すべきかの助言を受けられる。受付時間は都道府県で異なる。', type:'do'},
+          {icon:'warn', head:'呼吸の異常・けいれんは119番', desc:'ぐったりして反応が鈍い、呼吸が苦しい、けいれんが続く、唇が紫などは、相談より先に119番。', type:'crit'},
+        ],
+        note:{type:'',text:'#8000は受付時間が地域で異なります。つながらない場合や緊急のときは119番へ。'},
+        tels:[
+          {num:'#8000', label:'#8000 に電話する', sub:'子どもの救急相談', kind:'soft'}
+        ]
+      }),
+      // ===== AED使用時の注意（女性のプライバシー保護を含む） =====
+      aed_caution: r({
+        level:'crit', badge:'AEDの注意', title:'AED使用時の注意',
+        sub:'電源を入れたら音声ガイダンスに従えば大丈夫。要点だけ確認します。',
+        steps:[
+          {icon:'heart', head:'電源を入れ音声に従う', desc:'ふたを開ける／電源ボタンを押すと音声で手順を案内。落ち着いて従えばよい。', type:'do'},
+          {icon:'aid', head:'パッドは肌に直接、図の位置へ', desc:'右胸の上と左わき腹の下に、肌に直接しっかり貼る。汗や水は拭き取る。', type:'do'},
+          {icon:'warn', head:'貼る位置の妨げを取り除く', desc:'湿布・貼り薬ははがして拭く。胸の出っぱり(ペースメーカー等)は避けて貼る。ネックレス等は外さなくてよいがパッドに触れさせない。'},
+          {icon:'hush', head:'ショック時は皆「離れる」', desc:'「みんな離れて」と声をかけ、誰も傷病者に触れていないのを確認してからショックボタンを押す。', type:'crit'},
+          {icon:'guard', head:'女性のプライバシーに配慮', desc:'救命が最優先。その上で、衣服ははだけすぎず必要最小限を開く／上着・タオル・人垣で周囲の視線をさえぎる／パッドを貼ったら覆える範囲は覆う。可能なら女性が対応・補助する。', type:'do'},
+        ],
+        note:{type:'',text:'胸骨圧迫は止めず、AEDの音声指示があるときだけ手を止めます。配慮は大切ですが、救命の手を止めないことが最優先です。'}
       }),
     }
   },
@@ -681,6 +802,105 @@ const TREE = {
       }),
     }
   },
+
+  car: {
+    title:'交通事故・車のトラブル', icon:'car', color:'#4da8ff',
+    root:{
+      q:'どんな状況ですか？',
+      lead:'まず自分と周囲の安全。次にけが人の確認です。',
+      options:[
+        {label:'事故が起きた直後', sub:'まず何をする？', icon:'warn', next:'crash'},
+        {label:'けが人がいる', sub:'負傷者の対応', icon:'aid', next:'injured'},
+        {label:'ガソリン臭・液体漏れ・煙', sub:'出火のおそれ', icon:'fire', next:'fuel'},
+        {label:'車が水に落ちた / 水没', sub:'脱出できない', icon:'water', next:'submerge'},
+        {label:'路上・高速で動けない', sub:'故障・立ち往生', icon:'car', next:'stuck'},
+      ]
+    },
+    nodes:{
+      crash: r({
+        level:'crit', badge:'事故直後', title:'交通事故が起きたら',
+        sub:'安全確保 → 負傷者救護 → 通報の順です。',
+        steps:[
+          {icon:'off', head:'停車し安全を確保', desc:'エンジンを止め、ハザードを点ける。後続車に注意し、安全な場所(ガードレールの外など)へ避難。', type:'do'},
+          {icon:'warn', head:'発炎筒・三角表示板', desc:'可能なら後方に発炎筒や三角表示板を置き、二次事故を防ぐ。高速道路では特に重要。'},
+          {icon:'aid', head:'けが人を確認', desc:'負傷者がいれば救護。意識・呼吸を確認し、必要なら応急手当・心肺蘇生へ。', type:'crit'},
+          {icon:'phone', head:'110番と119番', desc:'警察(110番)へ必ず連絡。けが人がいれば119番も。事故の場所・状況・負傷者の数を伝える。', type:'crit'},
+        ],
+        note:{type:'danger',text:'けが人を不用意に動かさない(首・背骨の損傷悪化のおそれ)。ただし火災や水没など危険が迫る場合は安全な場所へ移す。'},
+        call:true,
+        links:[
+          {to:'injured', label:'けが人の対応を見る', icon:'aid'},
+          {to:'fuel', label:'ガソリン漏れ・出火のおそれ', icon:'fire'},
+        ]
+      }),
+      injured: r({
+        level:'crit', badge:'負傷者の救護', title:'けが人がいるとき',
+        sub:'反応と呼吸を確認し、必要な手当へ進みます。',
+        steps:[
+          {icon:'guard', head:'二次事故を防ぐ', desc:'まず周囲の交通を止める／避難。救護する人自身の安全を最優先に。', type:'do'},
+          {icon:'ear', head:'反応・呼吸を確認', desc:'声をかけ肩をたたく。反応がなく普段どおりの呼吸がなければ、ただちに心肺蘇生(胸骨圧迫)。', type:'crit'},
+          {icon:'hand', head:'むやみに動かさない', desc:'頭・首・背中を打った可能性。意識があっても首を動かさないよう支える。危険が迫る時のみ移動。'},
+          {icon:'aid', head:'出血は圧迫止血', desc:'大きな出血は清潔な布で強く押さえ続ける。', type:'do'},
+          {icon:'phone', head:'119番・110番', desc:'救急車と警察へ。場所・人数・状態を伝え、指示に従う。', type:'crit'},
+        ],
+        note:{type:'danger',text:'バイク事故などでヘルメットは原則外さない。呼吸ができない等やむを得ない時のみ、首を動かさないよう慎重に。'},
+        call:true,
+        links:[{to:'aed_caution_car', label:'AED使用時の注意を見る', icon:'heart'}]
+      }),
+      // 交通事故フローからもAEDの注意へ飛べるよう、同内容を別キーで用意
+      aed_caution_car: r({
+        level:'crit', badge:'AEDの注意', title:'AED使用時の注意',
+        sub:'電源を入れたら音声ガイダンスに従えば大丈夫。要点だけ確認します。',
+        steps:[
+          {icon:'heart', head:'電源を入れ音声に従う', desc:'ふたを開ける／電源ボタンを押すと音声で手順を案内。落ち着いて従えばよい。', type:'do'},
+          {icon:'aid', head:'パッドは肌に直接、図の位置へ', desc:'右胸の上と左わき腹の下に、肌に直接しっかり貼る。汗や水は拭き取る。', type:'do'},
+          {icon:'warn', head:'貼る位置の妨げを取り除く', desc:'湿布・貼り薬ははがして拭く。胸の出っぱり(ペースメーカー等)は避けて貼る。'},
+          {icon:'hush', head:'ショック時は皆「離れる」', desc:'「みんな離れて」と声をかけ、誰も触れていないのを確認してからショックボタンを押す。', type:'crit'},
+          {icon:'guard', head:'女性のプライバシーに配慮', desc:'救命が最優先。その上で、衣服ははだけすぎず必要最小限を開く／上着・タオル・人垣で視線をさえぎる／貼ったら覆える範囲は覆う。可能なら女性が対応・補助する。', type:'do'},
+        ],
+        note:{type:'',text:'配慮は大切ですが、救命の手を止めないことが最優先です。'}
+      }),
+      fuel: r({
+        level:'crit', badge:'出火のおそれ', title:'ガソリン漏れ・煙・異臭',
+        sub:'引火の危険。すぐ離れて通報します。',
+        steps:[
+          {icon:'run', head:'すぐ車から離れる', desc:'ガソリン臭・燃料漏れ・煙が見えたら、全員ただちに風上の安全な場所へ避難。車から十分距離をとる。', type:'crit'},
+          {icon:'off', head:'火気は厳禁', desc:'タバコ・ライターはもちろん、エンジン始動や電装品の操作も火花の原因に。スマホ操作も車から離れて。', type:'crit'},
+          {icon:'phone', head:'119番・110番', desc:'消防(119番)と警察(110番)へ。漏れている・煙が出ていることを伝える。', type:'crit'},
+          {icon:'warn', head:'消火は無理をしない', desc:'初期の小さな火で消火器があれば試みてよいが、炎が大きい・燃料に引火したら無理せず退避を優先。'},
+        ],
+        note:{type:'danger',text:'漏れた液体に色・臭い・粘り気がある時は燃料やオイルの可能性。エンジンをかけ直さず、車に近づかないこと。'},
+        call:true
+      }),
+      submerge: r({
+        level:'crit', badge:'水没・転落', title:'車が水に落ちたとき',
+        sub:'シートベルトを外し、沈む前に窓から脱出します。',
+        steps:[
+          {icon:'hand', head:'まずシートベルトを外す', desc:'落ち着いて、すぐシートベルトを外す。シートベルトは水中でも外せる。', type:'do'},
+          {icon:'window', head:'窓を開けて脱出', desc:'窓が水面より上のうちに窓を開けて脱出。電動でも作動することがあるので、あきらめず開けてみる。', type:'crit'},
+          {icon:'warn', head:'開かなければ窓を割る', desc:'脱出用ハンマーで、水没していない側面・後方の窓の「端」を割る。フロントガラスは合わせガラスで割れない。', type:'crit'},
+          {icon:'duck', head:'同乗者・子どもを先に', desc:'子どもや動けない人を先に外へ。全員を出してから自分が最後に脱出する。', type:'do'},
+          {icon:'water', head:'開かない時は水位差を待つ', desc:'ドアは水圧で開かない。車内に水が入り、内外の水位差が小さくなった瞬間が最後のチャンス。大きく息を吸い一気にドアを押し開ける。'},
+        ],
+        note:{type:'danger',text:'車はすぐには沈まず数分は浮く。慌てず、窓からの脱出を最優先に。脱出用ハンマー(シートベルトカッター付き)を普段から車内に常備しておく。'},
+        call:true
+      }),
+      stuck: r({
+        level:'warn', badge:'立ち往生', title:'路上・高速で動けない',
+        sub:'車内に留まらず、ガードレールの外へ避難します。',
+        steps:[
+          {icon:'off', head:'ハザードで合図', desc:'ハザードランプを点け、できれば路肩など安全な場所へ車を寄せる。', type:'do'},
+          {icon:'warn', head:'発炎筒・三角表示板', desc:'後方に発炎筒・三角表示板を置き、後続車に知らせる(高速道路では義務)。'},
+          {icon:'run', head:'車内に残らない', desc:'特に高速道路では車内や車のそばに留まると追突の危険。ガードレールの外側など安全な場所へ避難する。', type:'crit'},
+          {icon:'phone', head:'救援を呼ぶ', desc:'高速道路は非常電話か#9910(道路緊急ダイヤル)。一般道はJAFや任意保険のロードサービスへ。事故・負傷があれば110番・119番。', type:'do'},
+        ],
+        note:{type:'',text:'高速道路の本線上での停車は非常に危険。まず人の安全を確保してから救援を呼ぶ。'},
+        tels:[
+          {num:'#9910', label:'#9910 道路緊急ダイヤル', sub:'道路の異常・落下物・故障', kind:'soft'}
+        ]
+      }),
+    }
+  },
 };
 
 /* =========================================================
@@ -758,6 +978,14 @@ function renderResult(catKey, res){
   let cta = '';
   if(res.call) cta = `<a class="call-cta" href="tel:119">${ICON.phone}<span>119番に電話する</span></a>`;
   else if(res.call110) cta = `<a class="call-cta" href="tel:110">${ICON.phone}<span>110番に電話する</span></a>`;
+  // 任意の電話ボタン（#7119・#8000 など）。tels:[{num,label,sub,kind}]
+  if(Array.isArray(res.tels)){
+    cta += res.tels.map(t=>{
+      const kind = t.kind==='soft' ? ' soft' : '';
+      const sub = t.sub ? `<small>${t.sub}</small>` : '';
+      return `<a class="call-cta${kind}" href="tel:${t.num}">${ICON.phone}<span>${t.label}${sub}</span></a>`;
+    }).join('');
+  }
   const aedCta = res.aed ? `<button type="button" class="aed-cta" onclick="openAedModal()">${ICON.heart}<span>近くのAEDを探す</span></button>` : '';
   const note = res.note ? `
     <div class="note ${res.note.type==='danger'?'danger':''}">
@@ -791,6 +1019,16 @@ function renderResult(catKey, res){
     <div class="video-note">出典: 総務省消防庁「応急手当WEB講習」関連動画（YouTube）</div>`;
     cprAids = metroBtn + videoBtn;
   }
+  // 関連する別ページへのリンク（例：AED使用時の注意）
+  let linkBtns = '';
+  if(Array.isArray(res.links)){
+    linkBtns = res.links.map(l=>
+      `<button type="button" class="link-cta" onclick="goNode('${catKey}','${l.to}','${escapeAttr(l.label)}')">${ICON[l.icon]||ICON.check}<span>${l.label}</span></button>`
+    ).join('');
+  }
+  // #7119 の対応地域・受付時間を確認するボタン
+  const areaBtn = res.areaInfo ? `
+    <button type="button" class="area-cta" onclick="openAreaModal()">${ICON.eye}<span>対応地域・受付時間を確認</span></button>` : '';
   view.innerHTML = `
     <button class="back" onclick="goBack()">‹ もどる</button>
     <div class="result">
@@ -801,6 +1039,8 @@ function renderResult(catKey, res){
       ${note}
       ${speakBtn}
       ${cprAids}
+      ${linkBtns}
+      ${areaBtn}
       ${cta}
       ${aedCta}
     </div>
@@ -814,6 +1054,12 @@ function goBack(){
   const last = path[path.length-1];
   if(path.length===1){ renderNode(last.catKey,'root'); }
   else { renderNode(last.catKey, last.nodeKey); }
+}
+
+/* 関連ページへ移動（パンくずにも積む） */
+function goNode(catKey, nodeKey, label){
+  path.push({label:label||'', catKey, nodeKey});
+  renderNode(catKey, nodeKey);
 }
 
 function renderCrumbs(){
@@ -1043,7 +1289,7 @@ function closeAedModal(){
 }
 /* Escキーで閉じる */
 document.addEventListener('keydown', function(e){
-  if(e.key === 'Escape') closeAedModal();
+  if(e.key === 'Escape'){ closeAedModal(); closeAreaModal(); }
 });
 /* ハートアイコンを各所に流し込む */
 (function initAedIcons(){
@@ -1053,7 +1299,100 @@ document.addEventListener('keydown', function(e){
   if(t) t.innerHTML = ICON.heart + '<span>近くのAEDを探す</span>';
 })();
 
-renderHome();
-</script>
+/* ===== #7119 対応地域・受付時間（出典：総務省消防庁 appropriate007.html） =====
+   ※対応地域・受付時間・対象年齢は変動します。最新は消防庁ページでご確認ください。 */
+const AREA_UPDATED = '2026年6月時点';
+// scope: 'full'=都道府県全域 / 'part'=一部地域のみ
+// age: '全年齢' / '15+'（概ね15歳以上、15歳未満は#8000）
+const AREA_7119 = [
+  {pref:'北海道', scope:'part', area:'札幌市・石狩市・北広島市・恵庭市・栗山町・南幌町・長沼町・当別町・新篠津村・島牧村', age:'全年齢', hours:'全日24時間'},
+  {pref:'青森県', scope:'full', area:'県内全域', age:'15+', hours:'全日24時間'},
+  {pref:'岩手県', scope:'full', area:'県内全域', age:'15+', hours:'全日24時間'},
+  {pref:'宮城県', scope:'full', area:'県内全域', age:'15+', hours:'全日24時間'},
+  {pref:'山形県', scope:'full', area:'県内全域', age:'15+', hours:'全日 18時〜翌8時'},
+  {pref:'福島県', scope:'full', area:'県内全域', age:'15+', hours:'全日24時間'},
+  {pref:'茨城県', scope:'full', area:'県内全域', age:'15+', hours:'全日24時間'},
+  {pref:'栃木県', scope:'full', area:'県内全域', age:'15+', hours:'平日 16時〜翌10時 / 土日祝 10時〜翌10時'},
+  {pref:'群馬県', scope:'full', area:'県内全域', age:'全年齢', hours:'全日24時間'},
+  {pref:'埼玉県', scope:'full', area:'県内全域', age:'全年齢', hours:'全日24時間'},
+  {pref:'千葉県', scope:'full', area:'県内全域', age:'15+', hours:'全日24時間'},
+  {pref:'東京都', scope:'full', area:'都内全域', age:'全年齢', hours:'全日24時間'},
+  {pref:'神奈川県', scope:'full', area:'県内全域', age:'全年齢', hours:'全日24時間'},
+  {pref:'新潟県', scope:'full', area:'県内全域', age:'15+', hours:'全日 18時〜翌8時（連休・年末年始は24時間）'},
+  {pref:'富山県', scope:'full', area:'県内全域', age:'15+', hours:'平日 19時〜翌9時 / 土 13時〜翌9時 / 日祝 9時〜翌9時'},
+  {pref:'石川県', scope:'full', area:'県内全域', age:'15+', hours:'全日24時間'},
+  {pref:'福井県', scope:'full', area:'県内全域', age:'15+', hours:'全日24時間'},
+  {pref:'山梨県', scope:'full', area:'県内全域', age:'全年齢', hours:'全日24時間'},
+  {pref:'長野県', scope:'full', area:'県内全域', age:'15+', hours:'平日 19時〜翌8時 / 土日祝・年末年始 8時〜翌8時'},
+  {pref:'岐阜県', scope:'full', area:'県内全域', age:'全年齢', hours:'全日24時間'},
+  {pref:'静岡県', scope:'full', area:'県内全域', age:'15+', hours:'全日24時間'},
+  {pref:'愛知県', scope:'part', area:'名古屋市', age:'15+', hours:'全日24時間'},
+  {pref:'滋賀県', scope:'full', area:'県内全域', age:'15+', hours:'全日24時間'},
+  {pref:'京都府', scope:'full', area:'府内全域', age:'全年齢', hours:'全日24時間'},
+  {pref:'大阪府', scope:'full', area:'府内全域', age:'全年齢', hours:'全日24時間'},
+  {pref:'兵庫県', scope:'full', area:'県内全域', age:'全年齢', hours:'全日24時間'},
+  {pref:'奈良県', scope:'full', area:'県内全域', age:'全年齢', hours:'全日24時間'},
+  {pref:'和歌山県', scope:'part', area:'田辺市・美浜町・日高町・由良町・印南町・みなべ町・日高川町・白浜町・上富田町・すさみ町', age:'全年齢', hours:'全日24時間'},
+  {pref:'鳥取県', scope:'full', area:'県内全域', age:'15+', hours:'全日24時間'},
+  {pref:'岡山県', scope:'part', area:'岡山市・倉敷市・津山市など県内主要17市町', age:'15+', hours:'平日 19時〜翌8時 / 土 18時〜翌8時 / 日祝・年末年始 8時〜翌8時'},
+  {pref:'広島県', scope:'part', area:'大崎上島町を除く県内市町（広島広域都市圏・備後圏域）', age:'全年齢', hours:'全日24時間'},
+  {pref:'山口県', scope:'part', area:'県内（岩国市・和木町・萩市・阿武町を除く）', age:'15+', hours:'全日24時間'},
+  {pref:'徳島県', scope:'full', area:'県内全域', age:'15+', hours:'月〜土 18時〜翌8時 / 日祝・年末年始 24時間'},
+  {pref:'香川県', scope:'full', area:'県内全域', age:'15+', hours:'全日 19時〜翌8時'},
+  {pref:'愛媛県', scope:'full', area:'県内全域', age:'15+', hours:'全日24時間'},
+  {pref:'高知県', scope:'full', area:'県内全域', age:'全年齢', hours:'全日24時間'},
+  {pref:'福岡県', scope:'full', area:'県内全域', age:'全年齢', hours:'全日24時間'},
+  {pref:'長崎県', scope:'full', area:'県内全域', age:'全年齢', hours:'全日24時間'},
+  {pref:'熊本県', scope:'full', area:'県内全域', age:'15+', hours:'全日24時間'},
+  {pref:'大分県', scope:'full', area:'県内全域', age:'15+', hours:'平日・土 19時〜翌8時 / 日祝 8時〜翌8時'},
+  {pref:'沖縄県', scope:'part', area:'県内（北大東村・与那国町を除く）', age:'全年齢', hours:'全日24時間'},
+];
+// 47都道府県のうち、上記に「全域(full)」が無い県は #7119 未対応（または一部のみ）
+const ALL_PREFS = ['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'];
+
+function buildAreaModal(){
+  const body = document.getElementById('areaBody');
+  if(!body) return;
+  const fullList = AREA_7119.filter(a=>a.scope==='full');
+  const partList = AREA_7119.filter(a=>a.scope==='part');
+  const listedPrefs = new Set(AREA_7119.map(a=>a.pref));
+  const noPrefs = ALL_PREFS.filter(p=>!listedPrefs.has(p)); // 一覧に全く無い県＝未対応
+  const row = (a)=>`
+    <div class="area-row">
+      <div class="area-pref">${a.pref}</div>
+      <div class="area-meta">
+        <span class="area-tag ${a.age==='全年齢'?'all':'a15'}">${a.age==='全年齢'?'全年齢':'15歳以上'}</span>
+        <span class="area-when">${a.hours}</span>
+        ${a.scope==='part'?`<span class="area-scope">対象地域: ${a.area}</span>`:''}
+      </div>
+    </div>`;
+  body.innerHTML = `
+    <div class="area-note warn">${ICON.warn}<span><b>#7119は全国共通ではありません。</b>対応していない地域があります。お住まい・滞在中の地域が対応していても受付時間外のことがあります。<b>つながらないとき・緊急のときは、ためらわず119番</b>に電話してください。</span></div>
+
+    <div class="area-h">✅ 都道府県全域で対応</div>
+    <div class="area-list">${fullList.map(row).join('')}</div>
+
+    <div class="area-h">◐ 一部の地域のみ対応</div>
+    <div class="area-list">${partList.map(row).join('')}</div>
+
+    <div class="area-h">✕ #7119では未対応の地域（一覧に無い県）</div>
+    <div class="area-list">
+      <div class="area-row"><div class="area-pref" style="font-weight:600;color:var(--muted)">${noPrefs.join('・')||'なし'}</div></div>
+      <div class="area-sub">これらの地域では#7119が使えないか、#7119以外の番号で救急電話相談を行っている場合があります。各都道府県の窓口や消防庁アプリ「Q助」をご利用ください。</div>
+    </div>
+
+    <div class="area-foot">出典: 総務省消防庁「救急安心センター事業（#7119）」（${AREA_UPDATED}）。地域・受付時間・対象年齢は変わることがあります。最新情報は各自治体・消防庁のページでご確認ください。</div>`;
+}
+function openAreaModal(){
+  buildAreaModal();
+  const ov = document.getElementById('areaOverlay');
+  if(ov){ ov.classList.add('open'); }
+}
+function closeAreaModal(){
+  const ov = document.getElementById('areaOverlay');
+  if(ov){ ov.classList.remove('open'); }
+}
+
+renderHome();</script>
 </body>
 </html>
