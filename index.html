@@ -338,6 +338,30 @@
     background:rgba(77,168,255,.08);border-radius:14px;padding:13px;
   }
   .area-cta svg{width:20px;height:20px;color:#4da8ff;}
+
+  /* フッター（プライバシーポリシー） */
+  .app-footer{
+    margin-top:26px;padding-top:16px;border-top:1px solid var(--line);
+    display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
+  }
+  .footer-link{
+    background:none;border:none;color:var(--muted);font:inherit;font-size:13px;
+    text-decoration:underline;cursor:pointer;padding:4px 6px;
+  }
+  .footer-link:hover{color:var(--ink);}
+  .footer-note{font-size:11px;color:var(--muted);line-height:1.6;}
+
+  /* プライバシーポリシー本文 */
+  .privacy-panel{max-width:520px;}
+  .privacy-panel h2{font-size:18px;margin-bottom:14px;}
+  .privacy-body{font-size:13px;line-height:1.8;color:var(--ink);}
+  .privacy-body .pv-lead{color:var(--muted);margin:0 0 14px;}
+  .privacy-body p{margin:0 0 12px;}
+  .pv-h{
+    font-size:13.5px;font-weight:700;color:var(--ink);
+    margin:16px 0 7px;padding-left:9px;border-left:3px solid var(--accent);
+  }
+  .pv-foot{font-size:11.5px;color:var(--muted);margin-top:16px;padding-top:12px;border-top:1px solid var(--line);}
 </style>
 </head>
 <body>
@@ -368,6 +392,11 @@
   <div class="crumbs" id="crumbs" aria-live="polite"></div>
 
   <div id="view"></div>
+
+  <footer class="app-footer">
+    <button type="button" class="footer-link" onclick="openPrivacyModal()">プライバシーポリシー</button>
+    <span class="footer-note">本ツールは応急対応の参考情報です。緊急時は迷わず119番／110番へ。</span>
+  </footer>
 
 </div>
 
@@ -405,6 +434,41 @@
     <h2 id="areaTitle">#7119 対応地域・受付時間</h2>
     <div id="areaBody"></div>
     <button type="button" class="aed-close" onclick="closeAreaModal()">✕ 閉じる</button>
+  </div>
+</div>
+
+<!-- ===== プライバシーポリシー オーバーレイ ===== -->
+<div class="aed-overlay" id="privacyOverlay" onclick="if(event.target===this)closePrivacyModal()">
+  <div class="aed-panel privacy-panel" role="dialog" aria-modal="true" aria-label="プライバシーポリシー">
+    <h2>プライバシーポリシー</h2>
+    <div class="privacy-body">
+      <p class="pv-lead">本「緊急対応マニュアル」（以下「本ツール」）は、いざという時の応急対応の手順を確認するための情報提供を目的としています。本ツールにおける個人情報・利用者情報の取り扱いについて、以下のとおり定めます。</p>
+
+      <div class="pv-h">1. 個人情報の収集について</div>
+      <p>本ツールは、氏名・住所・電話番号・メールアドレスなどの個人情報を入力する機能を持たず、これらを収集しません。お問い合わせフォームや会員登録の仕組みもありません。</p>
+
+      <div class="pv-h">2. 端末内に保存される情報</div>
+      <p>本ツールは、利用者の操作内容や閲覧履歴を端末（Cookie・ローカルストレージ等）やサーバーに保存しません。読み上げ機能・リズム音（メトロノーム）は、お使いのブラウザ内で音声を生成するもので、音声や操作の内容を外部へ送信することはありません。</p>
+
+      <div class="pv-h">3. アクセス解析・広告について</div>
+      <p>本ツール自体は、アクセス解析ツールや広告配信サービスを利用していません。利用者を識別・追跡する目的の情報収集は行いません。</p>
+
+      <div class="pv-h">4. 電話発信について</div>
+      <p>「119番」「110番」「#7119」「#8000」「#9910」などの電話ボタンを押すと、お使いの端末の電話アプリが起動します。発信や通話は各電話会社・相談窓口の管理下で行われ、本ツールが通話内容を取得することはありません。</p>
+
+      <div class="pv-h">5. 外部サイト・外部コンテンツについて</div>
+      <p>本ツールには、外部サイトへのリンクや外部コンテンツの埋め込みが含まれます。具体的には、AED設置場所の検索サイト（日本救急医療財団「全国AEDマップ」、AED財団「AED N@VI」）へのリンク、および胸骨圧迫の解説動画（YouTube）の埋め込み表示です。</p>
+      <p>これらのリンク先・埋め込み先では、それぞれの事業者により、Cookie等を用いた情報取得が行われる場合があります。特にYouTube動画を再生した場合、Google社のプライバシーポリシーに基づき情報が取得されることがあります。外部サイト・外部サービスにおける情報の取り扱いについては、各事業者のプライバシーポリシーをご確認ください。</p>
+
+      <div class="pv-h">6. 免責事項</div>
+      <p>本ツールに掲載する応急手当・救命処置等の情報は、消防庁・日本救急医療財団・JAF・厚生労働省・国土交通省等の公開情報を参考に作成していますが、その完全性・最新性を保証するものではありません。実際の救命・救護にあたっては、119番通報時の通信指令員の指示や、医療従事者・専門機関の判断を優先してください。本ツールの利用により生じた損害について、運営者は責任を負いかねます。</p>
+
+      <div class="pv-h">7. 本ポリシーの変更</div>
+      <p>本ツールの内容変更や法令の改正等に応じて、本ポリシーを予告なく変更することがあります。</p>
+
+      <p class="pv-foot">制定日：2026年6月</p>
+    </div>
+    <button type="button" class="aed-close" onclick="closePrivacyModal()">✕ 閉じる</button>
   </div>
 </div>
 
@@ -1289,7 +1353,7 @@ function closeAedModal(){
 }
 /* Escキーで閉じる */
 document.addEventListener('keydown', function(e){
-  if(e.key === 'Escape'){ closeAedModal(); closeAreaModal(); }
+  if(e.key === 'Escape'){ closeAedModal(); closeAreaModal(); closePrivacyModal(); }
 });
 /* ハートアイコンを各所に流し込む */
 (function initAedIcons(){
@@ -1390,6 +1454,16 @@ function openAreaModal(){
 }
 function closeAreaModal(){
   const ov = document.getElementById('areaOverlay');
+  if(ov){ ov.classList.remove('open'); }
+}
+
+/* ===== プライバシーポリシー モーダル ===== */
+function openPrivacyModal(){
+  const ov = document.getElementById('privacyOverlay');
+  if(ov){ ov.classList.add('open'); }
+}
+function closePrivacyModal(){
+  const ov = document.getElementById('privacyOverlay');
   if(ov){ ov.classList.remove('open'); }
 }
 
