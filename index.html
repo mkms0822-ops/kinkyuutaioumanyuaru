@@ -214,6 +214,41 @@
   .speak-cta.speaking svg{color:var(--accent);}
   .speak-hint{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;line-height:1.6;}
 
+  /* 胸骨圧迫リズム メトロノーム */
+  .metro-cta{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    margin-top:12px;border:1px solid var(--line);cursor:pointer;font:inherit;width:100%;
+    color:var(--ink);font-weight:700;font-size:16px;
+    background:var(--panel-soft);border-radius:14px;padding:14px;
+  }
+  .metro-cta svg{width:22px;height:22px;color:var(--danger);}
+  .metro-cta.beating{border-color:var(--danger);color:var(--danger);background:rgba(255,90,95,.10);}
+  .metro-cta.beating svg{color:var(--danger);animation:metroPulse .5s ease-in-out infinite;}
+  @keyframes metroPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.18);}}
+  .metro-rate{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    margin-top:8px;font-size:12px;color:var(--muted);
+  }
+  .metro-rate label{font-weight:700;color:var(--ink);}
+  .metro-rate input[type=range]{flex:1;max-width:180px;accent-color:var(--danger);}
+  .metro-rate .bpm{font-variant-numeric:tabular-nums;min-width:64px;text-align:right;color:var(--ink);font-weight:700;}
+
+  /* 胸骨圧迫の動画 */
+  .video-cta{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    margin-top:12px;border:1px solid var(--line);cursor:pointer;font:inherit;width:100%;
+    color:var(--ink);font-weight:700;font-size:16px;
+    background:var(--panel-soft);border-radius:14px;padding:14px;
+  }
+  .video-cta svg{width:22px;height:22px;color:#ff5a5f;}
+  .video-wrap{
+    margin-top:12px;border-radius:14px;overflow:hidden;border:1px solid var(--line);
+    background:#000;aspect-ratio:16/9;display:none;
+  }
+  .video-wrap.open{display:block;}
+  .video-wrap iframe{width:100%;height:100%;border:0;display:block;}
+  .video-note{font-size:11px;color:var(--muted);text-align:center;margin-top:6px;line-height:1.6;}
+
   /* AEDモーダル */
   .aed-overlay{
     display:none;position:fixed;inset:0;z-index:9999;
@@ -353,6 +388,8 @@ const ICON = {
   heart: S('<path d="M24 40C10 30 6 22 6 16a8 8 0 0 1 15-3 8 8 0 0 1 15 3c0 6-4 14-18 24z"/><path d="M14 22h6l3-5 3 9 2-4h6"/>'),
   speak: S('<path d="M8 19v10h7l9 7V12l-9 7z"/><path d="M30 18a8 8 0 0 1 0 12M34 14a13 13 0 0 1 0 20"/>'),
   stop: S('<rect x="12" y="12" width="24" height="24" rx="4"/>'),
+  metro: S('<path d="M18 6h12l6 36H12z"/><path d="M24 38 31 14"/><circle cx="31" cy="14" r="2.4" fill="currentColor" stroke="none"/><path d="M16 32h16"/>'),
+  play: S('<circle cx="24" cy="24" r="19"/><path d="M20 16l12 8-12 8z" fill="currentColor" stroke="none"/>'),
 };
 
 /* =========================================================
@@ -482,7 +519,22 @@ const TREE = {
           {icon:'hand', head:'胸骨圧迫', desc:'胸の真ん中を強く速く(1分100〜120回)。救急隊が来るまで続ける。', type:'crit'},
         ],
         note:{type:'',text:'119番では通信指令員が手順を教えてくれます。指示に従ってください。'},
-        call:true, aed:true
+        call:true, aed:true, cpr:true,
+        // 音声読み上げ用の読み仮名テキスト（数字・英語の誤読を防ぐ）
+        speak:[
+          'すてっぷ１。',
+          'かたをたたきはんのうをみる。',
+          '「だいじょうぶですか」とこえをかけ、かたをたたく。はんのうがなければつぎへ。',
+          'すてっぷ２。',
+          '119ばんとエーイーディーをいらい。',
+          'しゅういのひとをしめいし、「あなたは119ばん」、「あなたはエーイーディー」と、ぐたいてきにたのむ。',
+          'すてっぷ３。',
+          'こきゅうをかくにん。',
+          'むねとおなかのうごきを10びょうみる。ふだんどおりのこきゅうがなければ、「きょうこつあっぱく」をはじめる。',
+          'すてっぷ４。',
+          'きょうこつあっぱく。',
+          'むねのまんなかをつよくはやく、いっぷん100から120かい。きゅうきゅうたいいんがくるまでつづける。'
+        ].join(' ')
       }),
       choke: r({
         level:'crit', badge:'窒息', title:'のどに詰まらせたとき',
@@ -639,7 +691,7 @@ const crumbsEl = document.getElementById('crumbs');
 let path = []; // {cat, nodeKey, label}
 
 function renderHome(){
-  stopSpeak();
+  stopSpeak(); resetCprAids();
   path = [];
   renderCrumbs();
   const cats = Object.entries(TREE).map(([k,c])=>`
@@ -665,7 +717,7 @@ function pickCat(catKey){
 }
 
 function renderNode(catKey, nodeKey){
-  stopSpeak();
+  stopSpeak(); resetCprAids();
   const cat = TREE[catKey];
   const node = nodeKey==='root' ? cat.root : cat.nodes[nodeKey];
   if(node.type==='result'){ return renderResult(catKey, node); }
@@ -691,7 +743,7 @@ function choose(catKey, next, label){
 }
 
 function renderResult(catKey, res){
-  stopSpeak();
+  stopSpeak(); resetCprAids();
   renderCrumbs();
   const badgeClass = res.level==='crit'?'':res.level==='safe'?'safe':'warn';
   const steps = res.steps.map((s,i)=>`
@@ -719,6 +771,26 @@ function renderResult(catKey, res){
       <span id="speakBtnIcon">${ICON.speak}</span><span id="speakBtnLabel">手順を読み上げる</span>
     </button>
     <div class="speak-hint">音声で手順を読み上げます。もう一度押すと停止します。</div>` : '';
+  // 胸骨圧迫の補助（リズム音・動画）：cpr フラグのある結果のみ
+  let cprAids = '';
+  if(res.cpr){
+    const metroBtn = _audioSupported ? `
+    <button type="button" class="metro-cta" id="metroBtn" onclick="toggleMetro()">
+      <span id="metroBtnIcon">${ICON.metro}</span><span id="metroBtnLabel">圧迫リズム音を鳴らす</span>
+    </button>
+    <div class="metro-rate">
+      <label for="metroRange">テンポ</label>
+      <input type="range" id="metroRange" min="100" max="120" step="1" value="110" oninput="setMetroRate(this.value)">
+      <span class="bpm"><span id="metroBpm">110</span> 回/分</span>
+    </div>` : '';
+    const videoBtn = `
+    <button type="button" class="video-cta" id="videoBtn" onclick="toggleVideo()">
+      ${ICON.play}<span>胸骨圧迫の動画を見る</span>
+    </button>
+    <div class="video-wrap" id="videoWrap"></div>
+    <div class="video-note">出典: 総務省消防庁「応急手当WEB講習」関連動画（YouTube）</div>`;
+    cprAids = metroBtn + videoBtn;
+  }
   view.innerHTML = `
     <button class="back" onclick="goBack()">‹ もどる</button>
     <div class="result">
@@ -728,6 +800,7 @@ function renderResult(catKey, res){
       <ul class="steps">${steps}</ul>
       ${note}
       ${speakBtn}
+      ${cprAids}
       ${cta}
       ${aedCta}
     </div>
@@ -779,10 +852,19 @@ if(_speechSupported){
   window.addEventListener('pagehide', function(){ try{ window.speechSynthesis.cancel(); }catch(e){} });
   document.addEventListener('visibilitychange', function(){ if(document.hidden){ stopSpeak(); } });
 }
+/* 読み上げに依存しない、リズム音の停止（ページ非表示・離脱時） */
+window.addEventListener('pagehide', function(){ try{ stopMetro(); }catch(e){} });
+document.addEventListener('visibilitychange', function(){ if(document.hidden){ try{ stopMetro(); }catch(e){} } });
 
 /* 結果データから読み上げ用の文章を組み立てる */
 function buildSpeakText(res){
   if(!res) return '';
+  // 専用の読み仮名テキスト（res.speak）があればそれを優先（数字・英語の誤読防止）
+  if(res.speak){
+    const tmp0 = document.createElement('div');
+    tmp0.innerHTML = res.speak;
+    return (tmp0.textContent || tmp0.innerText || '').replace(/\s+/g,' ').trim();
+  }
   const parts = [];
   if(res.title) parts.push(res.title + '。');
   if(res.sub) parts.push(res.sub);
@@ -844,6 +926,109 @@ function updateSpeakBtn(){
     btn.classList.remove('speaking');
     if(ico) ico.innerHTML = ICON.speak;
     if(lbl) lbl.textContent = '手順を読み上げる';
+  }
+}
+
+/* ===== 胸骨圧迫リズム メトロノーム（Web Audio API） ===== */
+const _AudioCtx = window.AudioContext || window.webkitAudioContext;
+const _audioSupported = !!_AudioCtx;
+let _audioCtx = null;
+let _metroTimer = null;
+let _metroOn = false;
+let _metroBpm = 110; // 100〜120の中間。胸骨圧迫の推奨テンポ
+
+/* 「ポン」という短いビープを1回鳴らす */
+function metroBeep(){
+  if(!_audioCtx) return;
+  const now = _audioCtx.currentTime;
+  const osc = _audioCtx.createOscillator();
+  const gain = _audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(900, now);
+  // 短い減衰でクリックっぽい「ポン」に
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.6, now + 0.005);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+  osc.connect(gain).connect(_audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.1);
+}
+
+function toggleMetro(){
+  if(!_audioSupported){ return; }
+  if(_metroOn){ stopMetro(); return; }
+  try {
+    if(!_audioCtx) _audioCtx = new _AudioCtx();
+    if(_audioCtx.state === 'suspended') _audioCtx.resume();
+  } catch(e){ return; }
+  _metroOn = true;
+  updateMetroBtn();
+  metroBeep(); // すぐ1回鳴らす
+  scheduleMetro();
+}
+
+function scheduleMetro(){
+  if(_metroTimer){ clearInterval(_metroTimer); }
+  const interval = 60000 / _metroBpm; // 1拍の間隔(ms)
+  _metroTimer = setInterval(function(){ if(_metroOn) metroBeep(); }, interval);
+}
+
+function setMetroRate(v){
+  _metroBpm = Math.max(100, Math.min(120, parseInt(v,10)||110));
+  const lbl = document.getElementById('metroBpm');
+  if(lbl) lbl.textContent = _metroBpm;
+  if(_metroOn) scheduleMetro(); // 再生中はテンポを即反映
+}
+
+function stopMetro(){
+  _metroOn = false;
+  if(_metroTimer){ clearInterval(_metroTimer); _metroTimer = null; }
+  updateMetroBtn();
+}
+
+function updateMetroBtn(){
+  const btn = document.getElementById('metroBtn');
+  if(!btn) return;
+  const ico = document.getElementById('metroBtnIcon');
+  const lbl = document.getElementById('metroBtnLabel');
+  if(_metroOn){
+    btn.classList.add('beating');
+    if(lbl) lbl.textContent = 'リズム音を停止';
+  } else {
+    btn.classList.remove('beating');
+    if(lbl) lbl.textContent = '圧迫リズム音を鳴らす';
+  }
+}
+
+/* ===== 胸骨圧迫の動画（YouTube埋め込み） ===== */
+/* 総務省消防庁の応急手当WEB講習 関連動画「成人及び小児に対する胸骨圧迫」 */
+const CPR_VIDEO_ID = 'RoDSpte7_PQ';
+let _videoOpen = false;
+function toggleVideo(){
+  const wrap = document.getElementById('videoWrap');
+  const btn = document.getElementById('videoBtn');
+  if(!wrap) return;
+  if(_videoOpen){
+    wrap.classList.remove('open');
+    wrap.innerHTML = ''; // iframe除去で再生停止
+    _videoOpen = false;
+    if(btn) btn.querySelector('span').textContent = '胸骨圧迫の動画を見る';
+  } else {
+    wrap.innerHTML = '<iframe src="https://www.youtube.com/embed/' + CPR_VIDEO_ID +
+      '?rel=0&playsinline=1" title="胸骨圧迫の動画" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+    wrap.classList.add('open');
+    _videoOpen = true;
+    if(btn) btn.querySelector('span').textContent = '動画を閉じる';
+    try { wrap.scrollIntoView({behavior:'smooth', block:'nearest'}); } catch(e){}
+  }
+}
+/* 画面遷移時に動画とリズム音を止めるためのリセット */
+function resetCprAids(){
+  stopMetro();
+  if(_videoOpen){
+    const wrap = document.getElementById('videoWrap');
+    if(wrap){ wrap.classList.remove('open'); wrap.innerHTML=''; }
+    _videoOpen = false;
   }
 }
 
