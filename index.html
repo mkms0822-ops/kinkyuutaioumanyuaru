@@ -1476,8 +1476,8 @@ renderHome();</script>
 (function () {
   var GAS_URL = "https://script.google.com/macros/s/AKfycby8yqQ-1sIZrcpKfzi1D7teL7ogBQHQWUKjzEAYjE8qe76y0biy2IHvkULjeEWuzoCHNA/exec";
 
+  var uid = "";
   try {
-    var uid = "";
     try {
       uid = localStorage.getItem("dwa_visit_uid") || "";
       if (!uid) {
@@ -1495,6 +1495,27 @@ renderHome();</script>
 
     var img = new Image();
     img.src = GAS_URL + "?" + params;
+  } catch (e) {}
+
+  // ===== 緊急電話ボタン（tel:リンク）のタップ数を記録 =====
+  try {
+    document.addEventListener("click", function (ev) {
+      var a = ev.target && ev.target.closest ? ev.target.closest('a[href^="tel:"]') : null;
+      if (!a) return;
+      var tel = a.getAttribute("href") || "";
+      var num = tel.replace(/^tel:/i, "");
+      var eparams =
+        "type=event" +
+        "&site=manual" +
+        "&uid=" + encodeURIComponent(uid) +
+        "&tel=" + encodeURIComponent(tel) +
+        "&name=" + encodeURIComponent(num) +
+        "&page=" + encodeURIComponent(location.pathname) +
+        "&ref=" + encodeURIComponent(document.referrer || "");
+      var eimg = new Image();
+      eimg.src = GAS_URL + "?" + eparams;
+      // 記録は発信を妨げない（既定の tel: 動作はそのまま進む）
+    }, true);
   } catch (e) {}
 })();
 </script>
